@@ -19,13 +19,13 @@ from datasets import pascalvoc_common
 
 slim = tf.contrib.slim
 
-FILE_PATTERN = 'voc_2007_%s_*.tfrecord'
+FILE_PATTERN = 'voc_2007_%s_*.tfrecord'#文件名后缀
 ITEMS_TO_DESCRIPTIONS = {
     'image': 'A color image of varying height and width.',
     'shape': 'Shape of the image',
     'object/bbox': 'A list of bounding boxes, one per each object.',
     'object/label': 'A list of labels, one per each object.',
-}
+}#描述
 # (Images, Objects) statistics on every class.
 TRAIN_STATISTICS = {
     'none': (0, 0),
@@ -50,7 +50,7 @@ TRAIN_STATISTICS = {
     'train': (261, 297),
     'tvmonitor': (256, 324),
     'total': (5011, 12608),
-}
+}#这个是统计训练集中的每个类的存在个数，‘类名称’:（有多少张图包含这个类，一共有多少个）
 TEST_STATISTICS = {
     'none': (0, 0),
     'aeroplane': (1, 1),
@@ -83,10 +83,10 @@ SPLITS_TO_STATISTICS = {
     'train': TRAIN_STATISTICS,
     'test': TEST_STATISTICS,
 }
-NUM_CLASSES = 20
+NUM_CLASSES = 20#类个数
 
 
-def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
+def get_split(split_name, dataset_dir, file_pattern=None, reader=None):#根据'split_name'来选择要用到的数据
     """Gets a dataset tuple with instructions for reading ImageNet.
 
     Args:

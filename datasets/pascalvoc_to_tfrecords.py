@@ -79,12 +79,12 @@ def _process_image(directory, name):
       width: integer, image width in pixels.
     """
     # Read the image file.
-    filename = directory + DIRECTORY_IMAGES + name + '.jpg'
-    image_data = tf.gfile.FastGFile(filename, 'r').read()
+    filename = directory + DIRECTORY_IMAGES + name + '.jpg'#一张图的名字
+    image_data = tf.gfile.FastGFile(filename, 'r').read()#读入
 
     # Read the XML annotation file.
-    filename = os.path.join(directory, DIRECTORY_ANNOTATIONS, name + '.xml')
-    tree = ET.parse(filename)
+    filename = os.path.join(directory, DIRECTORY_ANNOTATIONS, name + '.xml')#读取xml文件
+    tree = ET.parse(filename)#解析出xml中的信息
     root = tree.getroot()
 
     # Image shape.
@@ -122,7 +122,7 @@ def _process_image(directory, name):
 
 
 def _convert_to_example(image_data, labels, labels_text, bboxes, shape,
-                        difficult, truncated):
+                        difficult, truncated):#将上面解析出xml数据转换成tfrecord格式的example，每个图做一个
     """Build an Example proto for an image example.
 
     Args:
@@ -165,7 +165,7 @@ def _convert_to_example(image_data, labels, labels_text, bboxes, shape,
     return example
 
 
-def _add_to_tfrecord(dataset_dir, name, tfrecord_writer):
+def _add_to_tfrecord(dataset_dir, name, tfrecord_writer):#制作tfrecord格式文件
     """Loads data from image and annotations files and add them to a TFRecord.
 
     Args:
@@ -180,7 +180,7 @@ def _add_to_tfrecord(dataset_dir, name, tfrecord_writer):
     tfrecord_writer.write(example.SerializeToString())
 
 
-def _get_output_filename(output_dir, name, idx):
+def _get_output_filename(output_dir, name, idx):#生成tfrecord文件名称
     return '%s/%s_%03d.tfrecord' % (output_dir, name, idx)
 
 
@@ -192,22 +192,22 @@ def run(dataset_dir, output_dir, name='voc_train', shuffling=False):
       output_dir: Output directory.
     """
     if not tf.gfile.Exists(dataset_dir):
-        tf.gfile.MakeDirs(dataset_dir)
+        tf.gfile.MakeDirs(dataset_dir)#确定路径文件
 
     # Dataset filenames, and shuffling.
     path = os.path.join(dataset_dir, DIRECTORY_ANNOTATIONS)
-    filenames = sorted(os.listdir(path))
-    if shuffling:
+    filenames = sorted(os.listdir(path))#文件名构成的列表
+    if shuffling:#打乱
         random.seed(RANDOM_SEED)
         random.shuffle(filenames)
 
     # Process dataset files.
     i = 0
     fidx = 0
-    while i < len(filenames):
+    while i < len(filenames):#遍历所有文件的绝对路径
         # Open new TFRecord file.
-        tf_filename = _get_output_filename(output_dir, name, fidx)
-        with tf.python_io.TFRecordWriter(tf_filename) as tfrecord_writer:
+        tf_filename = _get_output_filename(output_dir, name, fidx)#生成一个tfrecord文件名
+        with tf.python_io.TFRecordWriter(tf_filename) as tfrecord_writer:#将解析完的exmample放入当tfrecord文件中
             j = 0
             while i < len(filenames) and j < SAMPLES_PER_FILES:
                 sys.stdout.write('\r>> Converting image %d/%d' % (i+1, len(filenames)))

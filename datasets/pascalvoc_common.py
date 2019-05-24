@@ -20,7 +20,7 @@ import tensorflow as tf
 from datasets import dataset_utils
 
 slim = tf.contrib.slim
-
+#2007和2012的不同在于统计样本个数，其他的都是用common 
 VOC_LABELS = {
     'none': (0, 'Background'),
     'aeroplane': (1, 'Vehicle'),
@@ -43,7 +43,7 @@ VOC_LABELS = {
     'sofa': (18, 'Indoor'),
     'train': (19, 'Vehicle'),
     'tvmonitor': (20, 'Indoor'),
-}
+}#数据集类标签
 
 
 def get_split(split_name, dataset_dir, file_pattern, reader,
@@ -66,11 +66,11 @@ def get_split(split_name, dataset_dir, file_pattern, reader,
     """
     if split_name not in split_to_sizes:
         raise ValueError('split name %s was not recognized.' % split_name)
-    file_pattern = os.path.join(dataset_dir, file_pattern % split_name)
+    file_pattern = os.path.join(dataset_dir, file_pattern % split_name)#生成数据tfrecord的路径
 
     # Allowing None in the signature so that dataset_factory can use the default.
     if reader is None:
-        reader = tf.TFRecordReader
+        reader = tf.TFRecordReader#指定文件读取器
     # Features in Pascal VOC TFRecords.
     keys_to_features = {
         'image/encoded': tf.FixedLenFeature((), tf.string, default_value=''),
@@ -86,7 +86,7 @@ def get_split(split_name, dataset_dir, file_pattern, reader,
         'image/object/bbox/label': tf.VarLenFeature(dtype=tf.int64),
         'image/object/bbox/difficult': tf.VarLenFeature(dtype=tf.int64),
         'image/object/bbox/truncated': tf.VarLenFeature(dtype=tf.int64),
-    }
+    }#解析
     items_to_handlers = {
         'image': slim.tfexample_decoder.Image('image/encoded', 'image/format'),
         'shape': slim.tfexample_decoder.Tensor('image/shape'),
@@ -97,11 +97,11 @@ def get_split(split_name, dataset_dir, file_pattern, reader,
         'object/truncated': slim.tfexample_decoder.Tensor('image/object/bbox/truncated'),
     }
     decoder = slim.tfexample_decoder.TFExampleDecoder(
-        keys_to_features, items_to_handlers)
+        keys_to_features, items_to_handlers)#解析
 
     labels_to_names = None
     if dataset_utils.has_labels(dataset_dir):
-        labels_to_names = dataset_utils.read_label_file(dataset_dir)
+        labels_to_names = dataset_utils.read_label_file(dataset_dir)#生成类名称字典
     # else:
     #     labels_to_names = create_readable_names_for_imagenet_labels()
     #     dataset_utils.write_label_file(labels_to_names, dataset_dir)
@@ -113,4 +113,4 @@ def get_split(split_name, dataset_dir, file_pattern, reader,
             num_samples=split_to_sizes[split_name],
             items_to_descriptions=items_to_descriptions,
             num_classes=num_classes,
-            labels_to_names=labels_to_names)
+            labels_to_names=labels_to_names)#生成Dataset数据类

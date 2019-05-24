@@ -45,7 +45,7 @@ import tensorflow as tf
 
 slim = tf.contrib.slim
 
-
+#该文件就是slim中VGG格式，完全一致
 def vgg_arg_scope(weight_decay=0.0005):
   """Defines the VGG arg scope.
 

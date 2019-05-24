@@ -26,7 +26,7 @@ import tensorflow as tf
 
 LABELS_FILENAME = 'labels.txt'
 
-
+#基本与slim分类中将数据制作成TFrecord方式一致
 def int64_feature(value):
     """Wrapper for inserting int64 features into Example proto.
     """
@@ -58,10 +58,10 @@ def image_to_tfexample(image_data, image_format, height, width, class_id):
       'image/class/label': int64_feature(class_id),
       'image/height': int64_feature(height),
       'image/width': int64_feature(width),
-    }))
+    }))#将数据转换成tfrecord格式
 
 
-def download_and_uncompress_tarball(tarball_url, dataset_dir):
+def download_and_uncompress_tarball(tarball_url, dataset_dir):#下载和解压指定的数据包
     """Downloads the `tarball_url` and uncompresses it locally.
 
     Args:

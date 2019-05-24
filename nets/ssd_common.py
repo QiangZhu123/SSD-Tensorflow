@@ -31,11 +31,11 @@ def tf_ssd_bboxes_encode_layer(labels,
                                prior_scaling=[0.1, 0.1, 0.2, 0.2],
                                dtype=tf.float32):
     """Encode groundtruth labels and bounding boxes using SSD anchors from
-    one layer.
+    one layer.将GT编码成SSD格式的数据
 
     Arguments:
-      labels: 1D Tensor(int64) containing groundtruth labels;
-      bboxes: Nx4 Tensor(float) with bboxes relative coordinates;
+      labels: 1D Tensor(int64) containing groundtruth labels;整数表示类标签
+      bboxes: Nx4 Tensor(float) with bboxes relative coordinates;4维浮点数为box
       anchors_layer: Numpy array with layer anchors;
       matching_threshold: Threshold for positive match with groundtruth bboxes;
       prior_scaling: Scaling of encoded coordinates.
@@ -49,9 +49,9 @@ def tf_ssd_bboxes_encode_layer(labels,
     xmin = xref - wref / 2.
     ymax = yref + href / 2.
     xmax = xref + wref / 2.
-    vol_anchors = (xmax - xmin) * (ymax - ymin)
+    vol_anchors = (xmax - xmin) * (ymax - ymin)#面积
 
-    # Initialize tensors...
+    # Initialize tensors...制作要返回的张量形状
     shape = (yref.shape[0], yref.shape[1], href.size)
     feat_labels = tf.zeros(shape, dtype=tf.int64)
     feat_scores = tf.zeros(shape, dtype=dtype)
@@ -61,7 +61,7 @@ def tf_ssd_bboxes_encode_layer(labels,
     feat_ymax = tf.ones(shape, dtype=dtype)
     feat_xmax = tf.ones(shape, dtype=dtype)
 
-    def jaccard_with_anchors(bbox):
+    def jaccard_with_anchors(bbox):#两个box之间的交叉
         """Compute jaccard score between a box and the anchors.
         """
         int_ymin = tf.maximum(ymin, bbox[0])

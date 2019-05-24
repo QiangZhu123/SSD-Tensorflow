@@ -179,14 +179,14 @@ FLAGS = tf.app.flags.FLAGS
 
 
 # =========================================================================== #
-# Main training routine.
+# Main training routine.其主要结构和slim中的分类结构一致
 # =========================================================================== #
 def main(_):
-    if not FLAGS.dataset_dir:
+    if not FLAGS.dataset_dir:#给定数据集路径
         raise ValueError('You must supply the dataset directory with --dataset_dir')
 
     tf.logging.set_verbosity(tf.logging.DEBUG)
-    with tf.Graph().as_default():
+    with tf.Graph().as_default():#构造图
         # Config model_deploy. Keep TF Slim Models structure.
         # Useful if want to need multiple GPUs and/or servers in the future.
         deploy_config = model_deploy.DeploymentConfig(
@@ -194,52 +194,52 @@ def main(_):
             clone_on_cpu=FLAGS.clone_on_cpu,
             replica_id=0,
             num_replicas=1,
-            num_ps_tasks=0)
+            num_ps_tasks=0)#部署参数设定
         # Create global_step.
-        with tf.device(deploy_config.variables_device()):
-            global_step = slim.create_global_step()
+        with tf.device(deploy_config.variables_device()):#选择设备
+            global_step = slim.create_global_step()#全局参数创建
 
         # Select the dataset.
         dataset = dataset_factory.get_dataset(
-            FLAGS.dataset_name, FLAGS.dataset_split_name, FLAGS.dataset_dir)
+            FLAGS.dataset_name, FLAGS.dataset_split_name, FLAGS.dataset_dir)#生成数据集TFrecords
 
         # Get the SSD network and its anchors.
-        ssd_class = nets_factory.get_network(FLAGS.model_name)
-        ssd_params = ssd_class.default_params._replace(num_classes=FLAGS.num_classes)
-        ssd_net = ssd_class(ssd_params)
-        ssd_shape = ssd_net.params.img_shape
-        ssd_anchors = ssd_net.anchors(ssd_shape)
+        ssd_class = nets_factory.get_network(FLAGS.model_name)#选择网络结构
+        ssd_params = ssd_class.default_params._replace(num_classes=FLAGS.num_classes)#指定类个数
+        ssd_net = ssd_class(ssd_params)#给网络配置参数
+        ssd_shape = ssd_net.params.img_shape#输入图片大小
+        ssd_anchors = ssd_net.anchors(ssd_shape)#网络anchor
 
         # Select the preprocessing function.
         preprocessing_name = FLAGS.preprocessing_name or FLAGS.model_name
         image_preprocessing_fn = preprocessing_factory.get_preprocessing(
-            preprocessing_name, is_training=True)
+            preprocessing_name, is_training=True)#选择预处理方式
 
         tf_utils.print_configuration(FLAGS.__flags, ssd_params,
-                                     dataset.data_sources, FLAGS.train_dir)
+                                     dataset.data_sources, FLAGS.train_dir)#打印参数
         # =================================================================== #
         # Create a dataset provider and batches.
         # =================================================================== #
-        with tf.device(deploy_config.inputs_device()):
-            with tf.name_scope(FLAGS.dataset_name + '_data_provider'):
+        with tf.device(deploy_config.inputs_device()):#选择设备
+            with tf.name_scope(FLAGS.dataset_name + '_data_provider'):#命名图结构
                 provider = slim.dataset_data_provider.DatasetDataProvider(
                     dataset,
                     num_readers=FLAGS.num_readers,
                     common_queue_capacity=20 * FLAGS.batch_size,
                     common_queue_min=10 * FLAGS.batch_size,
-                    shuffle=True)
+                    shuffle=True)#数据层
             # Get for SSD network: image, labels, bboxes.
             [image, shape, glabels, gbboxes] = provider.get(['image', 'shape',
                                                              'object/label',
-                                                             'object/bbox'])
+                                                             'object/bbox'])#用数据遍历器
             # Pre-processing image, labels and bboxes.
             image, glabels, gbboxes = \
                 image_preprocessing_fn(image, glabels, gbboxes,
                                        out_shape=ssd_shape,
-                                       data_format=DATA_FORMAT)
+                                       data_format=DATA_FORMAT)#输入网络图前对数据进行预处理
             # Encode groundtruth labels and bboxes.
             gclasses, glocalisations, gscores = \
-                ssd_net.bboxes_encode(glabels, gbboxes, ssd_anchors)
+                ssd_net.bboxes_encode(glabels, gbboxes, ssd_anchors)#GT数据进行编码
             batch_shape = [1] + [len(ssd_anchors)] * 3
 
             # Training batches and queue.
@@ -247,7 +247,7 @@ def main(_):
                 tf_utils.reshape_list([image, gclasses, glocalisations, gscores]),
                 batch_size=FLAGS.batch_size,
                 num_threads=FLAGS.num_preprocessing_threads,
-                capacity=5 * FLAGS.batch_size)
+                capacity=5 * FLAGS.batch_size)#训练数据划分为batch
             b_image, b_gclasses, b_glocalisations, b_gscores = \
                 tf_utils.reshape_list(r, batch_shape)
 
@@ -260,7 +260,7 @@ def main(_):
         # =================================================================== #
         # Define the model running on every GPU.
         # =================================================================== #
-        def clone_fn(batch_queue):
+        def clone_fn(batch_queue):#网络结构
             """Allows data parallelism by creating multiple
             clones of network_fn."""
             # Dequeue batch.
@@ -272,14 +272,14 @@ def main(_):
                                           data_format=DATA_FORMAT)
             with slim.arg_scope(arg_scope):
                 predictions, localisations, logits, end_points = \
-                    ssd_net.net(b_image, is_training=True)
+                    ssd_net.net(b_image, is_training=True)#网络执行
             # Add loss function.
             ssd_net.losses(logits, localisations,
                            b_gclasses, b_glocalisations, b_gscores,
                            match_threshold=FLAGS.match_threshold,
                            negative_ratio=FLAGS.negative_ratio,
                            alpha=FLAGS.loss_alpha,
-                           label_smoothing=FLAGS.label_smoothing)
+                           label_smoothing=FLAGS.label_smoothing)#损失函数
             return end_points
 
         # Gather initial summaries.

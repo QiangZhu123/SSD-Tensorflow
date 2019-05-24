@@ -29,11 +29,11 @@ from datasets import dataset_utils
 
 slim = tf.contrib.slim
 
-_FILE_PATTERN = 'cifar10_%s.tfrecord'
+_FILE_PATTERN = 'cifar10_%s.tfrecord'#tfrecord文件的后缀
 
-SPLITS_TO_SIZES = {'train': 50000, 'test': 10000}
+SPLITS_TO_SIZES = {'train': 50000, 'test': 10000}#指定训练集和测试集大小
 
-_NUM_CLASSES = 10
+_NUM_CLASSES = 10#类个数
 
 _ITEMS_TO_DESCRIPTIONS = {
     'image': 'A [32 x 32 x 3] color image.',
@@ -41,8 +41,8 @@ _ITEMS_TO_DESCRIPTIONS = {
 }
 
 
-def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
-  """Gets a dataset tuple with instructions for reading cifar10.
+def get_split(split_name, dataset_dir, file_pattern=None, reader=None):#这个是slim分类中的函数，主要是根据split_name来选择并解析tfrecord文件
+  """Gets a dataset tuple with instructions for reading cifar10.   #返回的就是Dataset数据集格式
 
   Args:
     split_name: A train/test split name.
@@ -63,7 +63,7 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
 
   if not file_pattern:
     file_pattern = _FILE_PATTERN
-  file_pattern = os.path.join(dataset_dir, file_pattern % split_name)
+  file_pattern = os.path.join(dataset_dir, file_pattern % split_name)#识别文件名格式
 
   # Allowing None in the signature so that dataset_factory can use the default.
   if not reader:
@@ -74,7 +74,7 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
       'image/format': tf.FixedLenFeature((), tf.string, default_value='png'),
       'image/class/label': tf.FixedLenFeature(
           [], tf.int64, default_value=tf.zeros([], dtype=tf.int64)),
-  }
+  }#解析文件个结构
 
   items_to_handlers = {
       'image': slim.tfexample_decoder.Image(shape=[32, 32, 3]),
@@ -82,11 +82,11 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
   }
 
   decoder = slim.tfexample_decoder.TFExampleDecoder(
-      keys_to_features, items_to_handlers)
+      keys_to_features, items_to_handlers)#用TFExampleDecoder解析文件
 
   labels_to_names = None
   if dataset_utils.has_labels(dataset_dir):
-    labels_to_names = dataset_utils.read_label_file(dataset_dir)
+    labels_to_names = dataset_utils.read_label_file(dataset_dir)#读取文件类名，映射为字典{‘标签’：名称}
 
   return slim.dataset.Dataset(
       data_sources=file_pattern,
@@ -95,4 +95,4 @@ def get_split(split_name, dataset_dir, file_pattern=None, reader=None):
       num_samples=SPLITS_TO_SIZES[split_name],
       items_to_descriptions=_ITEMS_TO_DESCRIPTIONS,
       num_classes=_NUM_CLASSES,
-      labels_to_names=labels_to_names)
+      labels_to_names=labels_to_names)#返回数据类，下面就可以用provider进行数据batch生成

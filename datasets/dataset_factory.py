@@ -29,7 +29,7 @@ datasets_map = {
     'imagenet': imagenet,
     'pascalvoc_2007': pascalvoc_2007,
     'pascalvoc_2012': pascalvoc_2012,
-}
+}#用于调用字典中的函数
 
 
 def get_dataset(name, split_name, dataset_dir, file_pattern=None, reader=None):
@@ -52,4 +52,4 @@ def get_dataset(name, split_name, dataset_dir, file_pattern=None, reader=None):
     return datasets_map[name].get_split(split_name,
                                         dataset_dir,
                                         file_pattern,
-                                        reader)
+                                        reader)#调用字典函数中的

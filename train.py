@@ -30,11 +30,11 @@ DATA_FORMAT = 'NCHW'
 # SSD Network flags.
 # =========================================================================== #
 tf.app.flags.DEFINE_float(
-    'loss_alpha', 1., 'Alpha parameter in the loss function.')
+    'loss_alpha', 1., 'Alpha parameter in the loss function.')#
 tf.app.flags.DEFINE_float(
-    'negative_ratio', 3., 'Negative ratio in the loss function.')
+    'negative_ratio', 3., 'Negative ratio in the loss function.')#正负样本比例
 tf.app.flags.DEFINE_float(
-    'match_threshold', 0.5, 'Matching threshold in the loss function.')
+    'match_threshold', 0.5, 'Matching threshold in the loss function.')#匹配样本阀值
 
 # =========================================================================== #
 # General Flags.
@@ -179,7 +179,7 @@ FLAGS = tf.app.flags.FLAGS
 
 
 # =========================================================================== #
-# Main training routine.其主要结构和slim中的分类结构一致
+# Main training routine.其主要结构和slim中的分类结构一致，因其本身就是一个直接的单阶段分类网络
 # =========================================================================== #
 def main(_):
     if not FLAGS.dataset_dir:#给定数据集路径

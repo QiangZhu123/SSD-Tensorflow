@@ -1,7 +1,7 @@
 # Copyright 2016 Paul Balanca. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
+# you may not use this file except in compliance with the License.SSD
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
@@ -90,6 +90,7 @@ class SSDNet(object):
       conv10 ==> 3 x 3
       conv11 ==> 1 x 1
     The default image size used to train this network is 300x300.
+    调用的主类
     """
     default_params = SSDParams(
         img_shape=(300, 300),
@@ -152,14 +153,14 @@ class SSDNet(object):
                     dropout_keep_prob=dropout_keep_prob,
                     prediction_fn=prediction_fn,
                     reuse=reuse,
-                    scope=scope)
+                    scope=scope)#predictions, localisations, logits, end_points
         # Update feature shapes (try at least!)
         if update_feat_shapes:
             shapes = ssd_feat_shapes_from_net(r[0], self.params.feat_shapes)
             self.params = self.params._replace(feat_shapes=shapes)
         return r
 
-    def arg_scope(self, weight_decay=0.0005, data_format='NHWC'):
+    def arg_scope(self, weight_decay=0.0005, data_format='NHWC'):#域的默认设置
         """Network arg_scope.
         """
         return ssd_arg_scope(weight_decay, data_format=data_format)
@@ -177,7 +178,7 @@ class SSDNet(object):
         shapes = ssd_feat_shapes_from_net(predictions, self.params.feat_shapes)
         self.params = self.params._replace(feat_shapes=shapes)
 
-    def anchors(self, img_shape, dtype=np.float32):
+    def anchors(self, img_shape, dtype=np.float32):#用于生成所有anchor的函数
         """Compute the default anchor boxes, given an image shape.
         """
         return ssd_anchors_all_layers(img_shape,
@@ -190,7 +191,7 @@ class SSDNet(object):
 
     def bboxes_encode(self, labels, bboxes, anchors,
                       scope=None):
-        """Encode labels and bounding boxes.
+        """Encode labels and bounding boxes.编码GT
         """
         return ssd_common.tf_ssd_bboxes_encode(
             labels, bboxes, anchors,
@@ -202,7 +203,7 @@ class SSDNet(object):
 
     def bboxes_decode(self, feat_localizations, anchors,
                       scope='ssd_bboxes_decode'):
-        """Encode labels and bounding boxes.
+        """Encode labels and bounding boxes.解码
         """
         return ssd_common.tf_ssd_bboxes_decode(
             feat_localizations, anchors,
@@ -237,7 +238,7 @@ class SSDNet(object):
                alpha=1.,
                label_smoothing=0.,
                scope='ssd_losses'):
-        """Define the SSD network losses.
+        """Define the SSD network losses.定义损失
         """
         return ssd_losses(logits, localisations,
                           gclasses, glocalisations, gscores,
@@ -316,12 +317,12 @@ def ssd_anchor_one_layer(img_shape,
     width and height.
 
     Arguments:
-      feat_shape: Feature shape, used for computing relative position grids;
-      size: Absolute reference sizes;
-      ratios: Ratios to use on these features;
+      feat_shape: Feature shape, used for computing relative position grids;(38,38)
+      size: Absolute reference sizes;(21,45)
+      ratios: Ratios to use on these features;(2,0.5)
       img_shape: Image shape, used for computing height, width relatively to the
-        former;
-      offset: Grid offset.
+        former;(300,300)
+      offset: Grid offset.0.5
 
     Return:
       y, x, h, w: Relative x and y grids, and height and width.
@@ -331,30 +332,30 @@ def ssd_anchor_one_layer(img_shape,
     # y = (y.astype(dtype) + offset) / feat_shape[0]
     # x = (x.astype(dtype) + offset) / feat_shape[1]
     # Weird SSD-Caffe computation using steps values...
-    y, x = np.mgrid[0:feat_shape[0], 0:feat_shape[1]]
+    y, x = np.mgrid[0:feat_shape[0], 0:feat_shape[1]]#生成坐标的xy
     y = (y.astype(dtype) + offset) * step / img_shape[0]
     x = (x.astype(dtype) + offset) * step / img_shape[1]
 
     # Expand dims to support easy broadcasting.
-    y = np.expand_dims(y, axis=-1)
+    y = np.expand_dims(y, axis=-1)#准备广播
     x = np.expand_dims(x, axis=-1)
 
     # Compute relative height and width.
     # Tries to follow the original implementation of SSD for the order.
-    num_anchors = len(sizes) + len(ratios)
+    num_anchors = len(sizes) + len(ratios)#每个点anchor数量
     h = np.zeros((num_anchors, ), dtype=dtype)
     w = np.zeros((num_anchors, ), dtype=dtype)
     # Add first anchor boxes with ratio=1.
-    h[0] = sizes[0] / img_shape[0]
+    h[0] = sizes[0] / img_shape[0]#对宽高归一化，这里的hw是个列表，每个值对应的是一个盒子，第一个就是ratio=1的，wh=21/300大小
     w[0] = sizes[0] / img_shape[1]
     di = 1
     if len(sizes) > 1:
-        h[1] = math.sqrt(sizes[0] * sizes[1]) / img_shape[0]
+        h[1] = math.sqrt(sizes[0] * sizes[1]) / img_shape[0]#第二个就是用公式来计算的，但是还是一样大的
         w[1] = math.sqrt(sizes[0] * sizes[1]) / img_shape[1]
         di += 1
-    for i, r in enumerate(ratios):
+    for i, r in enumerate(ratios):#之后的就要用指定的公式来计算h,w，保证hw=scale**2
         h[i+di] = sizes[0] / img_shape[0] / math.sqrt(r)
-        w[i+di] = sizes[0] / img_shape[1] * math.sqrt(r)
+        w[i+di] = sizes[0] / img_shape[1] * math.sqrt(r)#这样就生成了四个列表，每个位置表示了一个anchor的四个值
     return y, x, h, w
 
 
@@ -364,11 +365,11 @@ def ssd_anchors_all_layers(img_shape,
                            anchor_ratios,
                            anchor_steps,
                            offset=0.5,
-                           dtype=np.float32):
+                           dtype=np.float32):#遍历方式生成所有的anchors
     """Compute anchor boxes for all feature layers.
     """
     layers_anchors = []
-    for i, s in enumerate(layers_shape):
+    for i, s in enumerate(layers_shape):#遍历所有特征图[(38,38),(19,19),(10,10),(5,5),(3,3),(1,1)]
         anchor_bboxes = ssd_anchor_one_layer(img_shape, s,
                                              anchor_sizes[i],
                                              anchor_ratios[i],
@@ -408,9 +409,9 @@ def ssd_multibox_layer(inputs,
     """
     net = inputs
     if normalization > 0:
-        net = custom_layers.l2_normalization(net, scaling=True)
+        net = custom_layers.l2_normalization(net, scaling=True)#是否正则化
     # Number of anchors.
-    num_anchors = len(sizes) + len(ratios)
+    num_anchors = len(sizes) + len(ratios)#生成的anchor数量决定预测的通道数
 
     # Location.
     num_loc_pred = num_anchors * 4
@@ -441,10 +442,11 @@ def ssd_net(inputs,
             reuse=None,
             scope='ssd_300_vgg'):
     """SSD net definition.
+    主网络结构
     """
     # if data_format == 'NCHW':
     #     inputs = tf.transpose(inputs, perm=(0, 3, 1, 2))
-
+    #其形式就是和slim中的网络定义方式一样，用字典的方式来保存所有的特征图
     # End_points collect relevant activations for external use.
     end_points = {}
     with tf.variable_scope(scope, 'ssd_300_vgg', [inputs], reuse=reuse):
@@ -507,14 +509,14 @@ def ssd_net(inputs,
         predictions = []
         logits = []
         localisations = []
-        for i, layer in enumerate(feat_layers):
+        for i, layer in enumerate(feat_layers):#这里的feat_layers就是指定用来作为预测的特征图，要对其使用预测的分类器
             with tf.variable_scope(layer + '_box'):
                 p, l = ssd_multibox_layer(end_points[layer],
                                           num_classes,
                                           anchor_sizes[i],
                                           anchor_ratios[i],
-                                          normalizations[i])
-            predictions.append(prediction_fn(p))
+                                          normalizations[i])#p,l分别指cls_pred, loc_pred
+            predictions.append(prediction_fn(p))#prediction_fn为softmax
             logits.append(p)
             localisations.append(l)
 
@@ -522,7 +524,7 @@ def ssd_net(inputs,
 ssd_net.default_image_size = 300
 
 
-def ssd_arg_scope(weight_decay=0.0005, data_format='NHWC'):
+def ssd_arg_scope(weight_decay=0.0005, data_format='NHWC'):#这个是网络各个节点默认参数的设置
     """Defines the VGG arg scope.
 
     Args:
@@ -635,7 +637,7 @@ def ssd_losses(logits, localisations,
         fnmask = tf.cast(nmask, dtype)
 
         # Add cross-entropy loss.
-        with tf.name_scope('cross_entropy_pos'):
+        with tf.name_scope('cross_entropy_pos'):#对分类用稀疏交叉熵损失
             loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,
                                                                   labels=gclasses)
             loss = tf.div(tf.reduce_sum(loss * fpmask), batch_size, name='value')
@@ -648,7 +650,7 @@ def ssd_losses(logits, localisations,
             tf.losses.add_loss(loss)
 
         # Add localization loss: smooth L1, L2, ...
-        with tf.name_scope('localization'):
+        with tf.name_scope('localization'):#对定位用了smoothL1损失
             # Weights Tensor: positive mask + random negative.
             weights = tf.expand_dims(alpha * fpmask, axis=-1)
             loss = custom_layers.abs_smooth(localisations - glocalisations)

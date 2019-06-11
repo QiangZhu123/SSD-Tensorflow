@@ -204,11 +204,11 @@ def main(_):
             FLAGS.dataset_name, FLAGS.dataset_split_name, FLAGS.dataset_dir)#生成数据集TFrecords
 
         # Get the SSD network and its anchors.
-        ssd_class = nets_factory.get_network(FLAGS.model_name)#选择网络结构
-        ssd_params = ssd_class.default_params._replace(num_classes=FLAGS.num_classes)#指定类个数
-        ssd_net = ssd_class(ssd_params)#给网络配置参数
+        ssd_class = nets_factory.get_network(FLAGS.model_name)#选择网络结构ssd_vgg_300.SSDNet
+        ssd_params = ssd_class.default_params._replace(num_classes=FLAGS.num_classes)#指定类个数，更新类个数的字典值
+        ssd_net = ssd_class(ssd_params)#给网络配置参数，修改好了类个数
         ssd_shape = ssd_net.params.img_shape#输入图片大小
-        ssd_anchors = ssd_net.anchors(ssd_shape)#网络anchor
+        ssd_anchors = ssd_net.anchors(ssd_shape)#生成所有不同尺度的的anchors
 
         # Select the preprocessing function.
         preprocessing_name = FLAGS.preprocessing_name or FLAGS.model_name
@@ -272,7 +272,7 @@ def main(_):
                                           data_format=DATA_FORMAT)
             with slim.arg_scope(arg_scope):
                 predictions, localisations, logits, end_points = \
-                    ssd_net.net(b_image, is_training=True)#网络执行
+                    ssd_net.net(b_image, is_training=True)#网络执行Network arg_scope.
             # Add loss function.
             ssd_net.losses(logits, localisations,
                            b_gclasses, b_glocalisations, b_gscores,

@@ -7,10 +7,10 @@ mv events* graph* model* checkpoint ./log
 DATASET_DIR=/media/paul/DataExt4/PascalVOC/rawdata/VOC2012/trainval/
 OUTPUT_DIR=/media/paul/DataExt4/PascalVOC/dataset
 python tf_convert_data.py \
-    --dataset_name=pascalvoc \
-    --dataset_dir=${DATASET_DIR} \
-    --output_name=voc_2012_train \
-    --output_dir=${OUTPUT_DIR}
+    --dataset_name=pascalvoc \#这个不能改，是脚本中函数调用的条件
+    --dataset_dir=${DATASET_DIR} \#数据的路径
+    --output_name=voc_2012_train \#这是要将生成数据进行命名，voc_2012为名字，train为用途，在训练的时候用这个进行识别
+    --output_dir=${OUTPUT_DIR}#保存数据的路径
 
 CAFFE_MODEL=/media/paul/DataExt4/PascalVOC/training/ckpts/SSD_300x300_VOC0712/VGG_VOC0712_SSD_300x300_iter_120000.caffemodel
 python caffe_to_tensorflow.py \
@@ -27,8 +27,8 @@ CHECKPOINT_PATH=./checkpoints/ssd_300_vgg.ckpt
 python train_ssd_network.py \
     --train_dir=${TRAIN_DIR} \
     --dataset_dir=${DATASET_DIR} \
-    --dataset_name=pascalvoc_2012 \
-    --dataset_split_name=train \
+    --dataset_name=pascalvoc_2012 \#识别文件名
+    --dataset_split_name=train \#文件名中的用途区分
     --model_name=ssd_300_vgg \
     --checkpoint_path=${CHECKPOINT_PATH} \
     --save_summaries_secs=60 \

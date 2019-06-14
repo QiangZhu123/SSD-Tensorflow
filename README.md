@@ -4,3 +4,4 @@ Single Shot MultiBox Detector in TensorFlow
 调用就和分类一样，notebook的形式在notebook文件夹下
 输入的数据选择voc格式，用脚本转化为TFRecord格式即可进行训练,根据类名称不同，要修改pascal_common中的
 字典
+修改完之后，可以按照命令脚本中的方式调用函数进行训练

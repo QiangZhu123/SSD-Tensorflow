@@ -208,7 +208,8 @@ def main(_):
         ssd_params = ssd_class.default_params._replace(num_classes=FLAGS.num_classes)#指定类个数，更新类个数的字典值
         ssd_net = ssd_class(ssd_params)#给网络配置参数，修改好了类个数
         ssd_shape = ssd_net.params.img_shape#输入图片大小
-        ssd_anchors = ssd_net.anchors(ssd_shape)#生成所有不同尺度的的anchors
+        ssd_anchors = ssd_net.anchors(ssd_shape)#生成所有不同尺度的的anchors这里的格式是[[y,x,h,w],[y,x,h,w][y,x,h,w],[y,x,h,w],...]共特征图层数个
+        #其中y,x,h,w也为一个列表，但是每个位置都是一一对应，表示一个anchor，这个和RCNN中anchor的生成方式不同，结果格式也不同
 
         # Select the preprocessing function.
         preprocessing_name = FLAGS.preprocessing_name or FLAGS.model_name

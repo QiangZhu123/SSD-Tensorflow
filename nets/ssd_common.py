@@ -39,17 +39,17 @@ def tf_ssd_bboxes_encode_layer(labels,
       anchors_layer: Numpy array with layer anchors;
       matching_threshold: Threshold for positive match with groundtruth bboxes;
       prior_scaling: Scaling of encoded coordinates.
-
+      anchors_layer=[y,x,h,w]
     Return:
       (target_labels, target_localizations, target_scores): Target Tensors.
     """
     # Anchors coordinates and volume.
-    yref, xref, href, wref = anchors_layer
-    ymin = yref - href / 2.
+    yref, xref, href, wref = anchors_layer#每个都是一个列表，每个位置一一对应，表示一个anchor的四个值
+    ymin = yref - href / 2.#因为表示的是所有anchor的一个完整列表，可进行同时处理，而表示的形式是anchor的中心和宽高，要转化为左上和右下
     xmin = xref - wref / 2.
     ymax = yref + href / 2.
     xmax = xref + wref / 2.
-    vol_anchors = (xmax - xmin) * (ymax - ymin)#面积
+    vol_anchors = (xmax - xmin) * (ymax - ymin)#所有anchor面积，
 
     # Initialize tensors...制作要返回的张量形状
     shape = (yref.shape[0], yref.shape[1], href.size)
@@ -167,7 +167,7 @@ def tf_ssd_bboxes_encode(labels,
                          scope='ssd_bboxes_encode'):
     """Encode groundtruth labels and bounding boxes using SSD net anchors.
     Encoding boxes for all feature layers.
-
+    这个是调用接口
     Arguments:
       labels: 1D Tensor(int64) containing groundtruth labels;
       bboxes: Nx4 Tensor(float) with bboxes relative coordinates;
@@ -183,13 +183,13 @@ def tf_ssd_bboxes_encode(labels,
         target_labels = []
         target_localizations = []
         target_scores = []
-        for i, anchors_layer in enumerate(anchors):
+        for i, anchors_layer in enumerate(anchors):#这里anchors的格式为[[y,x,h,w],[y,x,h,w],[y,x,h,w],[y,x,h,w],[y,x,h,w],[y,x,h,w]...]特征图个
             with tf.name_scope('bboxes_encode_block_%i' % i):
                 t_labels, t_loc, t_scores = \
                     tf_ssd_bboxes_encode_layer(labels, bboxes, anchors_layer,
                                                num_classes, no_annotation_label,
                                                ignore_threshold,
-                                               prior_scaling, dtype)
+                                               prior_scaling, dtype)#调用函数，每次处理一层的anchor
                 target_labels.append(t_labels)
                 target_localizations.append(t_loc)
                 target_scores.append(t_scores)

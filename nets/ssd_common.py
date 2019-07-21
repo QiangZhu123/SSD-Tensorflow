@@ -44,7 +44,7 @@ def tf_ssd_bboxes_encode_layer(labels,
       (target_labels, target_localizations, target_scores): Target Tensors.
     """
     # Anchors coordinates and volume.
-    yref, xref, href, wref = anchors_layer#每个都是一个列表，每个位置一一对应，表示一个anchor的四个值
+    yref, xref, href, wref = anchors_layer#每个都是一个列表，每个位置一一对应，表示一个anchor的四个值y,x是所有的坐标，hw是box的大小
     ymin = yref - href / 2.#因为表示的是所有anchor的一个完整列表，可进行同时处理，而表示的形式是anchor的中心和宽高，要转化为左上和右下
     xmin = xref - wref / 2.
     ymax = yref + href / 2.
@@ -52,11 +52,11 @@ def tf_ssd_bboxes_encode_layer(labels,
     vol_anchors = (xmax - xmin) * (ymax - ymin)#所有anchor面积，
 
     # Initialize tensors...制作要返回的张量形状
-    shape = (yref.shape[0], yref.shape[1], href.size)
+    shape = (yref.shape[0], yref.shape[1], href.size)#(38，38，9）
     feat_labels = tf.zeros(shape, dtype=tf.int64)
     feat_scores = tf.zeros(shape, dtype=dtype)
 
-    feat_ymin = tf.zeros(shape, dtype=dtype)
+    feat_ymin = tf.zeros(shape, dtype=dtype)#所有anchor中左上和右下坐标单独抽出来计算
     feat_xmin = tf.zeros(shape, dtype=dtype)
     feat_ymax = tf.ones(shape, dtype=dtype)
     feat_xmax = tf.ones(shape, dtype=dtype)

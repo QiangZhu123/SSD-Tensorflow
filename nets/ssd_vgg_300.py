@@ -332,9 +332,9 @@ def ssd_anchor_one_layer(img_shape,
     # y = (y.astype(dtype) + offset) / feat_shape[0]
     # x = (x.astype(dtype) + offset) / feat_shape[1]
     # Weird SSD-Caffe computation using steps values...
-    y, x = np.mgrid[0:feat_shape[0], 0:feat_shape[1]]#生成坐标的xy
-    y = (y.astype(dtype) + offset) * step / img_shape[0]
-    x = (x.astype(dtype) + offset) * step / img_shape[1]
+    y, x = np.mgrid[0:feat_shape[0], 0:feat_shape[1]]#生成坐标的xy  从0到最后一个，如0-37为38*38特征图上的坐标
+    y = (y.astype(dtype) + offset) * step / img_shape[0]#这里就是anchor中心点的生成，因为文中要求中心点在（i+0.5）/|fk|，（j+0.5）/|fk| 所以要加个偏移0.5
+    x = (x.astype(dtype) + offset) * step / img_shape[1]#同上，step也表示每个坐标1值真正表示的尺寸是多少，乘上去就是真实的原图坐标位置
 
     # Expand dims to support easy broadcasting.
     y = np.expand_dims(y, axis=-1)#准备广播
@@ -342,16 +342,16 @@ def ssd_anchor_one_layer(img_shape,
 
     # Compute relative height and width.
     # Tries to follow the original implementation of SSD for the order.
-    num_anchors = len(sizes) + len(ratios)#每个点anchor数量
+    num_anchors = len(sizes) + len(ratios)#每个点anchor数量，之所以这样算anchor是因为这个函数中没有ratio=1，而是直接放到一起计算了，所以要相加
     h = np.zeros((num_anchors, ), dtype=dtype)
     w = np.zeros((num_anchors, ), dtype=dtype)
-    # Add first anchor boxes with ratio=1.
+    # Add first anchor boxes with ratio=1.size=(21,45) size=（Sk,Sk+1）
     h[0] = sizes[0] / img_shape[0]#对宽高归一化，这里的hw是个列表，每个值对应的是一个盒子，第一个就是ratio=1的，wh=21/300大小
     w[0] = sizes[0] / img_shape[1]
     di = 1
     if len(sizes) > 1:
         h[1] = math.sqrt(sizes[0] * sizes[1]) / img_shape[0]#第二个就是用公式来计算的，但是还是一样大的
-        w[1] = math.sqrt(sizes[0] * sizes[1]) / img_shape[1]
+        w[1] = math.sqrt(sizes[0] * sizes[1]) / img_shape[1]#这里的大小是（Sk*Sk+1）**(1/2)
         di += 1
     for i, r in enumerate(ratios):#之后的就要用指定的公式来计算h,w，保证hw=scale**2
         h[i+di] = sizes[0] / img_shape[0] / math.sqrt(r)

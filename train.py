@@ -201,8 +201,10 @@ def main(_):
 
         # Select the dataset.
         dataset = dataset_factory.get_dataset(
-            FLAGS.dataset_name, FLAGS.dataset_split_name, FLAGS.dataset_dir)#生成数据集TFrecords
-
+            FLAGS.dataset_name, FLAGS.dataset_split_name, FLAGS.dataset_dir)#slim.dataset.Dataset(data_source=file_pattern,
+                                                                                                 # reader=
+                                                                                                  #decoder=  
+                                                                                                  #num_sample= )                     
         # Get the SSD network and its anchors.
         ssd_class = nets_factory.get_network(FLAGS.model_name)#选择网络结构ssd_vgg_300.SSDNet
         ssd_params = ssd_class.default_params._replace(num_classes=FLAGS.num_classes)#指定类个数，更新类个数的字典值

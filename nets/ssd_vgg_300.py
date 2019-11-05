@@ -596,12 +596,12 @@ def ssd_losses(logits, localisations,
         fgscores = []
         flocalisations = []
         fglocalisations = []
-        for i in range(len(logits)):
-            flogits.append(tf.reshape(logits[i], [-1, num_classes]))
-            fgclasses.append(tf.reshape(gclasses[i], [-1]))
-            fgscores.append(tf.reshape(gscores[i], [-1]))
-            flocalisations.append(tf.reshape(localisations[i], [-1, 4]))
-            fglocalisations.append(tf.reshape(glocalisations[i], [-1, 4]))
+        for i in range(len(logits)):#依然是对张量进行reshape后才进行计算
+            flogits.append(tf.reshape(logits[i], [-1, num_classes]))#一行一个【num_classes】
+            fgclasses.append(tf.reshape(gclasses[i], [-1]))#一行一个值
+            fgscores.append(tf.reshape(gscores[i], [-1]))#一行一个值
+            flocalisations.append(tf.reshape(localisations[i], [-1, 4]))#一行四个值
+            fglocalisations.append(tf.reshape(glocalisations[i], [-1, 4]))#一行四个值
         # And concat the crap!
         logits = tf.concat(flogits, axis=0)
         gclasses = tf.concat(fgclasses, axis=0)
@@ -611,11 +611,11 @@ def ssd_losses(logits, localisations,
         dtype = logits.dtype
 
         # Compute positive matching mask...
-        pmask = gscores > match_threshold
+        pmask = gscores > match_threshold#对其进行筛选，只有gscores>match_threshold的才进行计算
         fpmask = tf.cast(pmask, dtype)
         n_positives = tf.reduce_sum(fpmask)
 
-        # Hard negative mining...
+        # Hard negative mining...硬负样本采样
         no_classes = tf.cast(pmask, tf.int32)
         predictions = slim.softmax(logits)
         nmask = tf.logical_and(tf.logical_not(pmask),
@@ -630,20 +630,20 @@ def ssd_losses(logits, localisations,
         n_neg = tf.cast(negative_ratio * n_positives, tf.int32) + batch_size
         n_neg = tf.minimum(n_neg, max_neg_entries)
 
-        val, idxes = tf.nn.top_k(-nvalues_flat, k=n_neg)
+        val, idxes = tf.nn.top_k(-nvalues_flat, k=n_neg)#采样
         max_hard_pred = -val[-1]
         # Final negative mask.
         nmask = tf.logical_and(nmask, nvalues < max_hard_pred)
         fnmask = tf.cast(nmask, dtype)
 
         # Add cross-entropy loss.
-        with tf.name_scope('cross_entropy_pos'):#对分类用稀疏交叉熵损失
+        with tf.name_scope('cross_entropy_pos'):#对分类用稀疏交叉熵损失  ————正样本
             loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,
                                                                   labels=gclasses)
             loss = tf.div(tf.reduce_sum(loss * fpmask), batch_size, name='value')
             tf.losses.add_loss(loss)
 
-        with tf.name_scope('cross_entropy_neg'):
+        with tf.name_scope('cross_entropy_neg'):#负样本
             loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits,
                                                                   labels=no_classes)
             loss = tf.div(tf.reduce_sum(loss * fnmask), batch_size, name='value')

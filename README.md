@@ -14,12 +14,13 @@ Single Shot MultiBox Detector in TensorFlow
 
 
 在调用训练脚本时会出现
-#InvalidArgumentError (see above for traceback): Default MaxPoolingOp only supports NHWC on device type CPU
+# InvalidArgumentError (see above for traceback): Default MaxPoolingOp only supports NHWC on device type CPU
 修改如下
-at train_ssd_network.py line 27:
-DATA_FORMAT = 'NCHW'
-modify to:
-DATA_FORMAT = 'NHWC'
+
+    at train_ssd_network.py line 27:
+    DATA_FORMAT = 'NCHW'
+    modify to:
+    DATA_FORMAT = 'NHWC'
 
 
 

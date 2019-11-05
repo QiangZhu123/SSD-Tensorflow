@@ -27,6 +27,13 @@ Single Shot MultiBox Detector in TensorFlow
 
 网络结构在nets.ssd_vgg_300.SSDNet()中的net定义，要修改网络结构直接修改这里即可，用其他类型的网络可对其结构进行重写
 
+对于损失的定义，则是在nets.ssd_vgg_300.SSDNet()中的ssd_losses，因为它是对每层特征图结构进行reshape后计算损失，所以可以针对最后的
+给定的损失结构修改
+
+
+
+
+
 网络的输出是针对每个图输出张量形式的结果，不是像其他类型的统一，针对每个特征图生成预测的2个张量形式
 当计算损失的时候是将张量展开成每列一个anchor的形式，用mask来计算每个anchor的损失在进行加和求平均
 

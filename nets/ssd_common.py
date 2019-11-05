@@ -91,7 +91,7 @@ def tf_ssd_bboxes_encode_layer(labels,
         return scores
 
     def condition(i, feat_labels, feat_scores,
-                  feat_ymin, feat_xmin, feat_ymax, feat_xmax):
+                  feat_ymin, feat_xmin, feat_ymax, feat_xmax):#简单的条件循环非要写成这样，i<labels个数，就是还有GTBOxes没有匹配完
         """Condition: check label index.
         """
         r = tf.less(i, tf.shape(labels))
